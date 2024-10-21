@@ -1,0 +1,41 @@
+{
+    "VisionModel": {
+        "input": {
+            "res_size": 224
+        },
+        "output": {
+            "class_size": 10
+        },
+        "hidden_size": 768,
+        "hidden_dropout_prob": 0.1,
+        "image_size": 224,
+        "patch_size": 16,
+        "num_channels": 3
+    },
+    "MixerModel": {
+        "input": {
+            "d_model": 768,
+            "n_layer": 1,
+            "lm_head_prenorm": "layer"
+        }
+    },
+    "Block1": {
+        "n_layers": 1,
+        "BlockType": "modules.phi_block",
+        "block_input": {
+            "resid_dropout": 0.1
+        },
+        "CoreType": "modules.mixers.discrete_mamba2",
+        "core_input": {
+            "d_state": 8,
+            "n_v_heads": 32,
+            "n_qk_heads": 32,
+            "d_conv": 3,
+            "conv_bias":false,
+            "expand": 1,
+            "chunk_size": 32,
+            "activation": "relu",
+            "bias": false
+        }
+    }
+}
