@@ -1,0 +1,8 @@
+distill 1 epoch, sft 0 epoch, lr 3e-4:
+acc: 10.00%, equals random
+distill 1 epoch, sft 0 epoch, lr 1e-5:
+acc: 36.10%
+distill 5 epoch, sft 0 epoch, lr 1e-5:
+acc: 54.33%
+distill 20 epoch, sft 0 epoch, lr 1e-5:
+acc: 

@@ -10,6 +10,7 @@ from huggingface_hub import PyTorchModelHubMixin
 from mamba_ssm.utils.generation import GenerationMixin
 from transformers.utils import ModelOutput
 import einops
+import torch.nn.init as init
 from modules.backbone import MixerModel
 from utils.config import Config
 
@@ -39,7 +40,7 @@ class VMHeadModel(nn.Module, GenerationMixin, PyTorchModelHubMixin):
     ) -> None:
 
         super().__init__()
-
+        
         # Load config
         if not isinstance(config, Config):
             config = Config.from_dict(config)
@@ -65,12 +66,21 @@ class VMHeadModel(nn.Module, GenerationMixin, PyTorchModelHubMixin):
         # )  # changed for Phi
         # print(f"d_model: {d_model}")
         self.vm_head = nn.Sequential(OrderedDict(
-            norm=nn.LayerNorm(d_model),  # B,L,D
+            # norm=nn.LayerNorm(d_model),  # B,L,D
             permute=Permute("b (h w) d -> b d h w", h=int(self.config.VisionModel.input.res_size // self.config.VisionModel.patch_size)),
             avgpool=nn.AdaptiveAvgPool2d(1),
             flatten=nn.Flatten(1),
             head=nn.Linear(d_model, self.config.VisionModel.output.class_size),
         ))
+
+        for name, param in self.vm_head.named_parameters():
+            if 'weight' in name:
+                if isinstance(param, nn.Linear):
+                    init.xavier_uniform_(param)
+                elif isinstance(param, nn.Conv2d):
+                    init.kaiming_uniform_(param, mode='fan_in', nonlinearity='silu')
+            elif 'bias' in name:
+                init.constant_(param, 0)
         # nn.init.zeros_(self.vm_head.bias)
         return
 
