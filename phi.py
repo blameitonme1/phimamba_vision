@@ -8,11 +8,9 @@ import math
 import random
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from models import *
 from torchvision import datasets, transforms
 from transformers import ViTModel, ViTConfig, ViTForImageClassification
-from models import *  # 假设这里包含了VMHeadModel定义
-from utils.config import Config  # 假设这里包含了从json加载配置的功能
+from utils.config import Config  
 from modules.vm_head import VMHeadModel
 from transformers import ViTModel, ViTConfig
 import numpy as np
@@ -23,31 +21,10 @@ def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
-# 定义模型
-# class StudentModel(nn.Module):
-#     def __init__(self):
-#         super().__init__()
-#         self.model = nn.Sequential(
-#             nn.Conv2d(3, 32, kernel_size=3, stride=1),
-#             nn.ReLU(),
-#             nn.MaxPool2d(kernel_size=2, stride=2),
-#             nn.Conv2d(32, 64, kernel_size=3, stride=1),
-#             nn.ReLU(),
-#             nn.MaxPool2d(kernel_size=2, stride=2),
-#             nn.Flatten(),
-#             nn.Linear(186624, 128),
-#             nn.ReLU(),
-#             nn.Linear(128, 10)
-#         )
-
-#     def forward(self, x):
-#         return self.model(x)
-
 set_seed(42)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 # student_config = ViTConfig.from_pretrained('google/vit-base-patch16-224')
-# # 加载模型配置
 # student_config.num_hidden_layers = 1
 # student_config.num_labels = 10
 model_config = Config.from_json("./vm.json")
