@@ -82,11 +82,14 @@ dataloader = DataLoader(dataset, batch_size=128, shuffle=True)
 test_dataset = datasets.CIFAR10(root='./data', train=False, download=True, transform=transform)
 test_dataloader = DataLoader(test_dataset, batch_size=128, shuffle=False)
 optimizer = optim.AdamW(student_model.parameters(), lr=1e-5)
+# linear lr scheduler
+lr_scheduler = optim.lr_scheduler.LinearLR(optimizer, start_factor=1.0, end_factor=0.3, total_iters=20)
 # print out the loss
 criterion_kl = nn.KLDivLoss(reduction="batchmean")
 criterion_ce = nn.CrossEntropyLoss()
 student_model.train()
 
+time.sleep(1800)
 # check trainable parameter
 
 for epoch in range(20):
@@ -95,17 +98,12 @@ for epoch in range(20):
 
         with torch.no_grad():
             teacher_outputs = teacher_model(images).logits
-            teacher_outputs = nn.functional.softmax(teacher_outputs, dim=1)  # 应用温度
+            teacher_outputs = nn.functional.softmax(teacher_outputs, dim=1) 
 
         student_outputs = student_model(images).logits
-        student_outputs = nn.functional.log_softmax(student_outputs, dim=1)  # 应用温度并转换为对数概率
+        student_outputs = nn.functional.log_softmax(student_outputs, dim=1)
 
-        # 计算KL散度损失
-        loss_kl = criterion_kl(student_outputs, teacher_outputs) # 损失乘以温度的平方
-
-        # 可选：加入交叉熵损失以保持学生模型的准确性
-        # loss_ce = criterion_ce(student_outputs, labels)
-        # loss = loss_kl + loss_ce
+        loss_kl = criterion_kl(student_outputs, teacher_outputs)
 
         loss = loss_kl
 
@@ -116,7 +114,7 @@ for epoch in range(20):
         sys.stdout.write(f"Epoch {epoch+1}, lr {optimizer.param_groups[0]['lr']}, Loss: {loss.item():.4f}\n")
         sys.stdout.flush()
 
-    # lr_scheduler.step()
+    lr_scheduler.step()
 
 
 # test the model
@@ -135,5 +133,8 @@ with torch.no_grad():
 
     accuracy = 100 * correct / total
     print(f"Test Accuracy: {accuracy:.2f}%")
+
+# save the model
+torch.save(student_model.state_dict(), "model.pth")
 
 print("DONE")
